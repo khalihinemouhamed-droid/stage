@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+  <!-- Header -->
+  <header class="bg-red-600 text-white p-6 text-center rounded-b-2xl shadow-lg">
+    <h1 class="text-3xl font-bold">Suivi RH - Admin</h1>
+    <p>Bienvenue {{ request.user.username }}</p>
+  </header>
+
+  <!-- Employés -->
+  <section class="p-6">
+    <h2 class="text-2xl font-semibold text-purple-700 mb-4">👥 Liste des Employés</h2>
+    <table class="min-w-full bg-white rounded-xl shadow-md">
+      <thead class="bg-purple-600 text-white">
+        <tr><th>Matricule</th><th>Nom</th><th>Poste</th><th>Département</th></tr>
+      </thead>
+      <tbody>
+        {% for e in employes %}
+        <tr class="border-b hover:bg-gray-100">
+          <td class="py-2 px-4">{{ e.matricule }}</td>
+          <td class="py-2 px-4">{{ e.nom }}</td>
+          <td class="py-2 px-4">{{ e.poste.titre }}</td>
+          <td class="py-2 px-4">{{ e.departement.nom }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Congés -->
+  <section class="p-6">
+    <h2 class="text-2xl font-semibold text-purple-700 mb-4">🌴 Suivi des Congés</h2>
+    <table class="min-w-full bg-white rounded-xl shadow-md">
+      <thead class="bg-purple-600 text-white">
+        <tr><th>Employé</th><th>Date début</th><th>Date fin</th><th>Motif</th><th>Statut</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for c in conges %}
+        <tr class="border-b hover:bg-gray-100">
+          <td class="py-2 px-4">{{ c.employe.nom }}</td>
+          <td class="py-2 px-4">{{ c.dateDebut }}</td>
+          <td class="py-2 px-4">{{ c.dateFin }}</td>
+          <td class="py-2 px-4">{{ c.motif }}</td>
+          <td class="py-2 px-4">{{ c.statut }}</td>
+          <td class="py-2 px-4 space-x-2">
+            <a href="{% url 'valider_conge' c.id 'approuver' %}" class="bg-green-500 text-white px-3 py-1 rounded">✔ Accepter</a>
+            <a href="{% url 'valider_conge' c.id 'refuser' %}" class="bg-red-500 text-white px-3 py-1 rounded">✖ Refuser</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Présences -->
+  <section class="p-6">
+    <h2 class="text-2xl font-semibold text-purple-700 mb-4">📌 Suivi des Présences</h2>
+    <table class="min-w-full bg-white rounded-xl shadow-md">
+      <thead class="bg-purple-600 text-white">
+        <tr><th>Employé</th><th>Date</th><th>Entrée</th><th>Sortie</th></tr>
+      </thead>
+      <tbody>
+        {% for p in presences %}
+        <tr class="border-b hover:bg-gray-100">
+          <td class="py-2 px-4">{{ p.employe.nom }}</td>
+          <td class="py-2 px-4">{{ p.entree|date:"d/m/Y" }}</td>
+          <td class="py-2 px-4">{{ p.entree|time:"H:i" }}</td>
+          <td class="py-2 px-4">{{ p.sortie|time:"H:i" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Salaires -->
+  <section class="p-6">
+    <h2 class="text-2xl font-semibold text-purple-700 mb-4">💰 Suivi des Salaires</h2>
+    <table class="min-w-full bg-white rounded-xl shadow-md">
+      <thead class="bg-purple-600 text-white">
+        <tr><th>Employé</th><th>Mois</th><th>Salaire Brut</th><th>Salaire Net</th></tr>
+      </thead>
+      <tbody>
+        {% for s in salaires %}
+        <tr class="border-b hover:bg-gray-100">
+          <td class="py-2 px-4">{{ s.employe.nom }}</td>
+          <td class="py-2 px-4">{{ s.mois }}</td>
+          <td class="py-2 px-4">{{ s.salaireBrut }}</td>
+          <td class="py-2 px-4">{{ s.salaireNet }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Supprimer un poste</title>
+  <style>
+    body { background:#f8f9fa; font-family:'Poppins',sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; }
+    .card { background:#fff; border-radius:15px; box-shadow:0 8px 25px rgba(0,0,0,0.1); padding:30px; width:500px; text-align:center; }
+    h2 { color:#dc3545; margin-bottom:25px; }
+    .info { margin-bottom:15px; }
+    .info strong { color:#6f42c1; }
+    .btn { display:inline-block; border-radius:30px; padding:10px 20px; text-decoration:none; font-weight:500; margin:10px; }
+    .btn-cancel { background:#6f42c1; color:#fff; }
+    .btn-cancel:hover { background:#5a32a3; transform:scale(1.05); }
+    .btn-delete { background:#dc3545; color:#fff; border:none; cursor:pointer; }
+    .btn-delete:hover { background:#b52a3a; transform:scale(1.05); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Confirmer la suppression</h2>
+    <p>Voulez-vous vraiment supprimer ce poste ?</p>
+    <div class="info"><strong>Titre :</strong> {{ poste.titre }}</div>
+    <div class="info"><strong>Description :</strong> {{ poste.description }}</div>
+
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-delete">🗑 Supprimer</button>
+      <a href="{% url 'liste_postes' %}" class="btn btn-cancel">⬅ Annuler</a>
+    </form>
+  </div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Détail du département</title>
+  <style>
+    body { background:#f8f9fa; font-family:'Poppins',sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; }
+    .card { background:#fff; border-radius:15px; box-shadow:0 8px 25px rgba(0,0,0,0.1); padding:30px; width:600px; }
+    h2 { text-align:center; color:#6f42c1; margin-bottom:25px; }
+    .info { margin-bottom:15px; }
+    .info strong { color:#6f42c1; }
+    ul { list-style:none; padding:0; }
+    li { background:#f1f1f1; margin-bottom:10px; padding:10px; border-radius:10px; }
+    .btn-back { display:block; text-align:center; background:#6f42c1; color:#fff; border-radius:30px; padding:10px; margin-top:20px; text-decoration:none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Détail du département</h2>
+    <div class="info"><strong>Nom :</strong> {{ departement.nom }}</div>
+    <div class="info"><strong>Description :</strong> {{ departement.description }}</div>
+
+    <h3>Postes associés :</h3>
+    <ul>
+      {% for p in postes %}
+        <li>{{ p.titre }} — {{ p.description }}</li>
+      {% empty %}
+        <li>Aucun poste défini pour ce département.</li>
+      {% endfor %}
+    </ul>
+
+    <a href="{% url 'liste_departements' %}" class="btn-back">⬅ Retour à la liste</a>
+  </div>
+</body>
+</html>

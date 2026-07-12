@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord RH - StaffCheck</title>
+    <!-- Intégration de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Intégration de Font Awesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 min-h-screen font-sans">
+
+    <!-- BARRE DE NAVIGATION PRINCIPALE -->
+    <nav class="bg-indigo-955 bg-indigo-950 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo & Identité -->
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-users-cog text-2xl text-indigo-400"></i>
+                    <span class="text-xl font-bold tracking-wider">StaffCheck <span class="text-sm font-normal text-indigo-300">| Espace RH</span></span>
+                </div>
+                <!-- Infos Utilisateur & Déconnexion -->
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm bg-indigo-900 px-3 py-1.5 rounded-xl border border-indigo-800 font-medium">
+                        <i class="far fa-user-circle mr-2 text-indigo-300"></i>{{ request.user.username }}
+                    </span>
+                    <a href="{% url 'logout' %}" class="text-sm bg-red-600 hover:bg-red-700 active:scale-95 px-3 py-1.5 rounded-xl font-bold transition transform duration-150">
+                        <i class="fas fa-sign-out-alt mr-1"></i> Déconnexion
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ZONE DE CONTENU -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- MESSAGE DE BIENVENUE -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-extrabold text-gray-800 tracking-tight">Gestion des Ressources Humaines</h1>
+            <p class="text-gray-500 mt-1">Validez les absences et suivez l'état général des demandes de congés de vos équipes.</p>
+        </div>
+
+        <!-- BLOCS DE STATISTIQUES (KPIs) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Nombre total de collaborateurs -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Effectif Global</p>
+                    <h3 class="text-3xl font-black text-gray-800 mt-1">{{ total_employes }}</h3>
+                </div>
+                <div class="p-4 bg-indigo-50 text-indigo-600 rounded-2xl">
+                    <i class="fas fa-users text-xl"></i>
+                </div>
+            </div>
+
+            <!-- Nombre de pointages valides aujourd'hui -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Présents ce jour</p>
+                    <h3 class="text-3xl font-black text-emerald-600 mt-1">{{ presents_aujourdhui }}</h3>
+                </div>
+                <div class="p-4 bg-emerald-50 text-emerald-600 rounded-2xl">
+                    <i class="fas fa-user-check text-xl"></i>
+                </div>
+            </div>
+
+            <!-- Nombre de congés validés en cours -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Membres en Congé</p>
+                    <h3 class="text-3xl font-black text-amber-600 mt-1">{{ conges_en_cours }}</h3>
+                </div>
+                <div class="p-4 bg-amber-50 text-amber-600 rounded-2xl">
+                    <i class="fas fa-calendar-times text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION PRINCIPALE : TABLEAU DES CONGÉS -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center space-x-2 mb-6 border-b border-gray-100 pb-4">
+                <i class="fas fa-plane-departure text-xl text-indigo-600"></i>
+                <h2 class="text-xl font-bold text-gray-800">Suivi & Actions sur les Congés</h2>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 border-b border-gray-100 text-xs font-bold uppercase tracking-wider text-gray-400">
+                            <th class="p-4">Employé</th>
+                            <th class="p-4">Période Demandée</th>
+                            <th class="p-4">Motif / Justification</th>
+                            <th class="p-4">Statut Actuel</th>
+                            <th class="p-4 text-center">Décision RH</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 text-sm font-medium text-gray-700">
+                        {% for conge in demandes_conges %}
+                        <tr class="hover:bg-indigo-50/20 transition duration-150">
+                            <!-- 1. Identité de l'employé -->
+                            <td class="p-4">
+                                <div class="font-bold text-gray-900">
+                                    {{ conge.employe.utilisateur.get_full_Nome|default:conge.employe.utilisateur.username }}
+                                </div>
+                                <div class="text-xs text-gray-400 mt-0.5 font-mono">Matricule: {{ conge.employe.matricule }}</div>
+                            </td>
+                            
+                            <!-- 2. Période (dateDebut et dateFin) -->
+                            <td class="p-4">
+                                <div class="flex items-center space-x-2 text-gray-600 text-xs">
+                                    <i class="far fa-calendar-alt text-gray-400 text-sm"></i>
+                                    <span>Du <strong class="text-gray-900 font-bold">{{ conge.dateDebut|date:"d/m/Y" }}</strong> au <strong class="text-gray-900 font-bold">{{ conge.dateFin|date:"d/m/Y" }}</strong></span>
+                                </div>
+                            </td>
+                            
+                            <!-- 3. Motif textuel -->
+                            <td class="p-4 max-w-xs">
+                                <p class="text-gray-500 font-normal truncate" title="{{ conge.motif }}">
+                                    {{ conge.motif }}
+                                </p>
+                            </td>
+                            
+                            <!-- 4. Rendu visuel du Statut (Synchronisé avec tes STATUT_CHOICES) -->
+                            <td class="p-4">
+                                <span class="px-3 py-1 text-xs font-bold rounded-full inline-flex items-center
+                                    {% if conge.statut == 'Approuvé' %} bg-green-50 text-green-700
+                                    {% elif conge.statut == 'Refusé' %} bg-red-50 text-red-700
+                                    {% else %} bg-amber-50 text-amber-700 {% endif %}">
+                                    
+                                    <i class="fas {% if conge.statut == 'Approuvé' %}fa-check-circle{% elif conge.statut == 'Refusé' %}fa-times-circle{% else %}fa-hourglass-half{% endif %} mr-1.5 text-[10px]"></i>
+                                    
+                                    {{ conge.statut }}
+                                </span>
+                            </td>
+
+                            <!-- 5. Décision RH (Boutons masqués si déjà traité) -->
+                            <td class="p-4 text-center">
+                                {% if conge.statut == 'Approuvé' or conge.statut == 'Refusé' %}
+                                <span class="text-xs text-gray-400 font-normal bg-gray-100 px-2.5 py-1 rounded-lg inline-block">
+                                    <i class="fas fa-lock mr-1 text-[10px]"></i> Archivé
+                                </span>
+                                {% else %}
+                                <div class="flex items-center justify-center space-x-2">
+                                    <!-- Lien pour Approuver -->
+                                    <a href="{% url 'traiter_conge' conge.id 'approuver' %}" 
+                                       class="inline-flex items-center justify-center px-3 py-1.5 bg-green-600 hover:bg-green-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-sm shadow-green-600/10 transition duration-150 transform">
+                                        <i class="fas fa-check mr-1"></i> Accepter
+                                    </a>
+                                    <!-- Lien pour Refuser -->
+                                    <a href="{% url 'traiter_conge' conge.id 'refuser' %}" 
+                                       class="inline-flex items-center justify-center px-3 py-1.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-sm shadow-red-600/10 transition duration-150 transform">
+                                        <i class="fas fa-times mr-1"></i> Refuser
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="p-12 text-center text-gray-400 font-normal italic">
+                                <i class="fas fa-folder-open text-3xl mb-3 block text-gray-300"></i>
+                                Aucune demande de congé n'est enregistrée dans le système.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

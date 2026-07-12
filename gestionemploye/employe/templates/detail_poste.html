@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Détail du poste</title>
+  <style>
+    body { background:#f8f9fa; font-family:'Poppins',sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; }
+    .card { background:#fff; border-radius:15px; box-shadow:0 8px 25px rgba(0,0,0,0.1); padding:30px; width:500px; }
+    h2 { text-align:center; color:#6f42c1; margin-bottom:25px; }
+    .info { margin-bottom:15px; }
+    .info strong { color:#6f42c1; }
+    .btn-back { display:block; text-align:center; background:#6f42c1; color:#fff; border-radius:30px; padding:10px; margin-top:20px; text-decoration:none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Détail du poste</h2>
+    <div class="info"><strong>Titre :</strong> {{ poste.titre }}</div>
+    <div class="info"><strong>Description :</strong> {{ poste.description }}</div>
+    <a href="{% url 'liste_postes' %}" class="btn-back">⬅ Retour à la liste</a>
+  </div>
+</body>
+</html>
