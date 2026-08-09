@@ -190,7 +190,9 @@
                                 <td class="px-4 py-3 text-slate-600 font-mono">{{ p.heure_arrivee|time:"H:i" }}</td>
                                 <td class="px-4 py-3 text-slate-600 font-mono">{% if p.heure_depart %}{{ p.heure_depart|time:"H:i" }}{% else %}--:--{% endif %}</td>
                                 <td class="px-4 py-3">
-                                    {% if p.statut == 'PRESENT' or p.statut == 'Présent' %}
+                                    {% if p.statut == 'ABSENT' %}
+                                        <span class="px-2 py-0.5 bg-rose-50 text-rose-700 rounded border border-rose-200 font-semibold text-[10px]">Absent</span>
+                                    {% elif p.statut == 'PRESENT' or p.statut == 'Present' %}
                                         <span class="px-2 py-0.5 bg-green-50 text-green-700 rounded border border-green-200 font-semibold text-[10px]">Présent</span>
                                     {% else %}
                                         <span class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded border border-amber-200 font-semibold text-[10px]">retard</span>
