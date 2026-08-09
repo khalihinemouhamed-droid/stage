@@ -1,22 +1,21 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
 from .models import FicheDePaie
+from account.decorators import role_required
 
 # Liste des salaires (admin ou RH)
-@login_required
+@role_required('rh', 'admin')
 def liste_salaires(request):
     salaires = FicheDePaie.objects.select_related("employe").all()
     return render(request, "liste_salaires.html", {"salaires": salaires})
 
-# Ajouter un salaire (employé connecté → pas de sélection)
-@login_required
+# Ajouter un salaire
+@role_required('rh', 'admin')
 def ajouter_salaire(request):
     if request.method == "POST":
         mois = request.POST.get("mois")
         salaireBrut = request.POST.get("salaireBrut")
         salaireNet = request.POST.get("salaireNet")
 
-        # ⚠️ Récupération automatique de l'employé lié au user connecté
         employe = request.user.employe  
 
         FicheDePaie.objects.create(
@@ -30,7 +29,7 @@ def ajouter_salaire(request):
     return render(request, "ajouter_salaire.html")
 
 # Modifier un salaire
-@login_required
+@role_required('rh', 'admin')
 def modifier_salaire(request, salaire_id):
     salaire = get_object_or_404(FicheDePaie, id=salaire_id)
     if request.method == "POST":
@@ -44,8 +43,30 @@ def modifier_salaire(request, salaire_id):
     return render(request, "modifier_salaire.html", {"salaire": salaire})
 
 # Supprimer un salaire
-@login_required
+@role_required('rh', 'admin')
 def supprimer_salaire(request, salaire_id):
     salaire = get_object_or_404(FicheDePaie, id=salaire_id)
     salaire.delete()
     return redirect("liste_salaires")
+
+# Espace Employé : Consultation de ses fiches de paie personnelles
+@role_required('employe')
+def mes_fiches_paie_view(request):
+    employe = None
+    try:
+        employe = request.user.employe
+    except Exception:
+        try:
+            employe = request.user.employe_profil
+        except Exception:
+            pass
+
+    if employe:
+        fiches = FicheDePaie.objects.filter(employe=employe).order_by("-id")
+    else:
+        fiches = []
+
+    return render(request, "mes_fiches_paie.html", {
+        "employe": employe,
+        "fiches": fiches
+    })

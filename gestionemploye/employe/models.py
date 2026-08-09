@@ -3,13 +3,11 @@ from django.conf import settings  # Pour faire référence à votre modèle Util
 
 class Departement(models.Model):
     nom = models.CharField(max_length=100, unique=True)
-    description = models.TextField(blank=True, null=True)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    
 
     def __str__(self):
         return self.nom
+    
 
 class Poste(models.Model):
     titre = models.CharField(max_length=100)
@@ -24,7 +22,10 @@ class Employe(models.Model):
     matricule = models.CharField(max_length=20, unique=True)
     telephone = models.CharField(max_length=20, blank=True, null=True)
     poste = models.ForeignKey(Poste, on_delete=models.SET_NULL, null=True, related_name="employes")
-    date_embauche = models.DateField()
+    departement = models.ForeignKey(Departement, on_delete=models.SET_NULL, null=True, blank=True)
+    salaire_base = models.DecimalField(max_digits=12, decimal_places=2, default=20000.00)
+
+
 
     def __str__(self):
         return f"{self.utilisateur.first_name} {self.utilisateur.last_name} ({self.matricule})"

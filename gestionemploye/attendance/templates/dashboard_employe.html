@@ -3,39 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Espace Employé - StaffCheck</title>
+    <title>Espace Employé - Smart RH</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome pour les icônes -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-gray-50 font-sans min-h-screen flex">
+<body class="bg-slate-50 font-sans min-h-screen flex">
 
-    <!-- 1. BARRE LATÉRALE (SIDEBAR) -->
-    <aside class="w-64 bg-indigo-900 text-white flex flex-col justify-between hidden md:flex">
+    <!-- 1. BARRE LATÉRALE (SIDEBAR BLEUE) -->
+    <aside class="w-64 bg-[#007acc] text-white flex flex-col justify-between hidden md:flex shadow-xl border-r border-blue-600">
         <div>
             <!-- Logo -->
-            <div class="p-6 text-xl font-bold tracking-wider border-b border-indigo-800 flex items-center space-x-2">
-                <i class="fas fa-user-clock text-indigo-400"></i>
-                <span>StaffCheck</span>
+            <div class="p-5 text-lg font-bold tracking-wider border-b border-blue-500/40 flex items-center space-x-2 text-white">
+                <i class="fas fa-user-clock text-blue-200"></i>
+                <span>Smart RH</span>
             </div>
             
-            <!-- Navigation -->
-            <nav class="mt-6 px-4 space-y-2">
-                <a href="{% url 'dashboard_employe' %}" class="flex items-center space-x-3 px-4 py-3 bg-indigo-800 rounded-lg text-white font-medium transition">
-                    <i class="fas fa-chart-pie w-5"></i>
-                    <span>Tableau de bord</span>
+            <!-- Navigation : Garde EXACTEMENT la même couleur de sélection (bg-white/20) au clic -->
+            <nav class="mt-4 px-3 space-y-1">
+                <!-- Onglet Pointage -->
+                <a href="{% url 'dashboard_employe' %}" 
+                   class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-white text-sm font-medium transition shadow-sm 
+                   {% if request.resolver_match.url_name == 'dashboard_employe' %} bg-white/20 {% else %} text-blue-100 hover:bg-white/10 {% endif %}">
+                    <i class="fas fa-fingerprint w-5 text-white"></i>
+                    <span>Pointage & Présence</span>
                 </a>
-                <a href="{% url 'demande_conge' %}" class="flex items-center space-x-3 px-4 py-3 text-indigo-200 hover:bg-indigo-800 hover:text-white rounded-lg font-medium transition">
-                    <i class="fas fa-calendar-check w-5"></i>
-                    <span>Mes Congés</span>
+
+                <!-- Onglet Gestion des Congés -->
+                <a href="{% url 'demande_conge' %}" 
+                   class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-white text-sm font-medium transition 
+                   {% if request.resolver_match.url_name == 'demande_conge' %} bg-white/20 shadow-sm {% else %} text-blue-100 hover:bg-white/10 {% endif %}">
+                    <i class="fas fa-calendar-check w-5 text-white"></i>
+                    <span>Gestion des Congés</span>
+                </a>
+
+                <!-- Onglet Mes Fiches de Paie -->
+                <a href="{% url 'mes_fiches_paie' %}" 
+                   class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-white text-sm font-medium transition 
+                   {% if request.resolver_match.url_name == 'mes_fiches_paie' %} bg-white/20 shadow-sm {% else %} text-blue-100 hover:bg-white/10 {% endif %}">
+                    <i class="fas fa-file-invoice-dollar w-5 text-white"></i>
+                    <span>Mes Fiches de Paie</span>
                 </a>
             </nav>
         </div>
 
         <!-- Déconnexion -->
-        <div class="p-4 border-t border-indigo-800">
-            <a href="{% url 'logout' %}" class="flex items-center space-x-3 px-4 py-3 text-red-300 hover:bg-red-900 hover:text-white rounded-lg font-medium transition">
+        <div class="p-4 border-t border-blue-500/40">
+            <a href="{% url 'logout' %}" class="flex items-center space-x-3 px-3 py-2 text-sm text-rose-200 hover:bg-rose-700/30 hover:text-white rounded-lg font-medium transition">
                 <i class="fas fa-sign-out-alt w-5"></i>
                 <span>Déconnexion</span>
             </a>
@@ -45,128 +60,146 @@
     <!-- 2. CONTENU PRINCIPAL -->
     <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
         
-        <!-- Header -->
-        <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-            <h1 class="text-xl font-semibold text-gray-800">Espace Personnel</h1>
+        <!-- Header épuré -->
+        <header class="bg-white shadow-sm border-b border-slate-200 px-6 py-3 flex justify-between items-center">
+            <div class="flex flex-col">
+                <h1 class="text-lg font-bold text-slate-800">Espace Pointage</h1>
+                <p class="text-[11px] text-slate-500">Suivi des heures de travail</p>
+            </div>
             
-            <!-- Informations Profil -->
+            <!-- Profil -->
             <div class="flex items-center space-x-3">
                 <div class="text-right hidden sm:block">
-                    <p class="text-sm font-semibold text-gray-700">{{ request.user.name}}</p>
-                    <p class="text-xs text-gray-500">Employé</p>
+                    <p class="text-xs font-semibold text-slate-700">{{ request.user.first_name }} {{ request.user.last_name }}</p>
+                    <p class="text-[10px] text-[#007acc] font-medium">Employé</p>
                 </div>
-                <div class="w-10 h-10 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center font-bold">
-                    <!-- {{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }} -->
-                      {{ request.user.name|slice:":1" }}
+                <div class="w-8 h-8 bg-[#007acc] text-white rounded-full flex items-center justify-center text-xs font-bold shadow-sm">
+                    {{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}
                 </div>
             </div>
         </header>
 
-        <!-- Container global -->
-        <div class="p-6 space-y-6 flex-1">
+        <!-- Container des cartes (Version Petite/Compacte) -->
+        <div class="p-4 space-y-6 flex-1">
             
-            <!-- Messages flash Django -->
+            <!-- Alertes -->
             {% if messages %}
                 {% for message in messages %}
-                    <div class="p-4 mb-4 rounded-xl shadow-sm border flex items-center space-x-2 {% if 'success' in message.tags %}bg-green-50 border-green-200 text-green-800{% else %}bg-indigo-50 border-indigo-200 text-indigo-800{% endif %}">
+                    <div class="p-3 rounded-lg shadow-sm border flex items-center space-x-2 text-xs {% if 'success' in message.tags %}bg-emerald-50 border-emerald-200 text-emerald-800{% else %}bg-amber-50 border-amber-200 text-amber-800{% endif %}">
                         <i class="fas {% if 'success' in message.tags %}fa-check-circle{% else %}fa-info-circle{% endif %}"></i>
-                        <p class="font-medium text-sm">{{ message }}</p>
+                        <p class="font-semibold">{{ message }}</p>
                     </div>
                 {% endfor %}
             {% endif %}
 
-            <!-- SECTION POINTAGE & STATUTS RAPIDES -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- SECTION CARTES COMPACTES -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 
-                <!-- BLOC BOUTON DE POINTAGE -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col justify-between lg:col-span-1">
+                <!-- CARTE COMPTEUR (PETITE) -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col justify-between">
                     <div>
-                        <h3 class="text-lg font-bold text-gray-800 mb-2">Pointage du Jour</h3>
-                        <p class="text-sm text-gray-500 mb-6">Enregistrez vos heures de présence.</p>
+                        <div class="flex items-center space-x-2 mb-1">
+                            <span class="p-1.5 bg-slate-100 text-[#007acc] rounded-md text-xs"><i class="fas fa-clock"></i></span>
+                            <h3 class="text-sm font-bold text-slate-800">Temps aujourd'hui</h3>
+                        </div>
                         
-                        <div class="text-center py-4 bg-gray-50 rounded-lg mb-6">
-                            <span class="text-3xl font-mono font-bold text-gray-800" id="current-time">00:00:00</span>
+                        <div class="text-center py-3 bg-[#1e1e2e] rounded-lg my-3 shadow-inner">
+                            <span class="text-2xl font-mono font-bold tracking-wider text-emerald-400" id="main-work-counter">
+                                {% if presence_du_jour and presence_du_jour.heure_depart %}
+                                    <span id="completed-hours" data-arrival="{{ presence_du_jour.heure_arrivee|time:'H:i:s' }}" data-departure="{{ presence_du_jour.heure_depart|time:'H:i:s' }}">--:--:--</span>
+                                {% elif presence_du_jour and not presence_du_jour.heure_depart %}
+                                    <span id="live-work-duration" data-arrival="{{ presence_du_jour.heure_arrivee|time:'H:i:s' }}">00:00:00</span>
+                                {% else %}
+                                    00:00:00
+                                {% endif %}
+                            </span>
                         </div>
                     </div>
 
-                    <form method="POST" action="{% url 'dashboard_employe' %}" class="space-y-2">
+                    <!-- Boutons d'action -->
+                    <form method="POST" action="{% url 'dashboard_employe' %}">
                         {% csrf_token %}
-                        
                         {% if not presence_du_jour %}
-                            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg shadow transition flex items-center justify-center space-x-2">
+                            <button type="submit" class="w-full bg-[#007acc] hover:bg-blue-700 text-white text-xs font-bold py-2 px-3 rounded-lg shadow transition-all flex items-center justify-center space-x-1">
                                 <i class="fas fa-sign-in-alt"></i>
                                 <span>Pointer l'Arrivée</span>
                             </button>
                         {% elif presence_du_jour and not presence_du_jour.heure_depart %}
-                            <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg shadow transition flex items-center justify-center space-x-2">
+                            <button type="submit" class="w-full bg-[#007acc] hover:bg-blue-700 text-white text-xs font-bold py-2 px-3 rounded-lg shadow transition-all flex items-center justify-center space-x-1">
                                 <i class="fas fa-sign-out-alt"></i>
                                 <span>Pointer le Départ</span>
                             </button>
                         {% else %}
-                            <button type="button" disabled class="w-full bg-gray-300 text-gray-500 font-bold py-3 px-4 rounded-lg cursor-not-allowed flex items-center justify-center space-x-2">
-                                <i class="fas fa-check-double"></i>
-                                <span>Pointage Terminé</span>
+                            <button type="button" disabled class="w-full bg-slate-50 text-slate-400 border border-slate-200 text-xs font-bold py-2 px-3 rounded-lg cursor-not-allowed flex items-center justify-center space-x-1">
+                                <i class="fas fa-check-double text-emerald-500"></i>
+                                <span>Terminé</span>
                             </button>
                         {% endif %}
                     </form>
                 </div>
 
-                <!-- STATUTS FLASH DU JOUR -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="p-4 bg-indigo-50 rounded-xl flex items-center space-x-4">
-                        <div class="p-3 bg-indigo-500 text-white rounded-lg"><i class="fas fa-calendar-day text-xl"></i></div>
-                        <div>
-                            <p class="text-sm text-gray-500 font-medium">Statut d'aujourd'hui</p>
-                            <p class="text-xl font-bold text-indigo-900">
-                                {% if presence_du_jour %}{{ presence_du_jour.get_statut_display }}{% else %}Non pointé{% endif %}
-                            </p>
-                        </div>
+                <!-- CARTE ARRIVÉE (COMPACTE) -->
+                <div class="p-4 bg-amber-50/40 rounded-xl flex flex-col justify-between border border-amber-100">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold text-amber-700 tracking-wide uppercase">Arrivée</span>
+                        <div class="p-1.5 bg-amber-500 text-white rounded-md text-xs"><i class="fas fa-door-open"></i></div>
                     </div>
-                    <div class="p-4 bg-amber-50 rounded-xl flex items-center space-x-4">
-                        <div class="p-3 bg-amber-500 text-white rounded-lg"><i class="fas fa-clock text-xl"></i></div>
-                        <div>
-                            <p class="text-sm text-gray-500 font-medium">Heure d'arrivée</p>
-                            <p class="text-xl font-bold text-amber-900">
-                                {% if presence_du_jour %}{{ presence_du_jour.heure_arrivee|time:"H:i" }}{% else %}--:--{% endif %}
-                            </p>
-                        </div>
+                    <div class="mt-2">
+                        <p class="text-xl font-black text-amber-950">
+                            {% if presence_du_jour %}{{ presence_du_jour.heure_arrivee|time:"H:i" }}{% else %}--:--{% endif %}
+                        </p>
+                        <p class="text-[10px] text-slate-400">Heure d'entrée enregistrée</p>
                     </div>
                 </div>
+
+                <!-- CARTE DÉPART (COMPACTE) -->
+                <div class="p-4 bg-slate-100/70 rounded-xl flex flex-col justify-between border border-slate-200">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold text-slate-600 tracking-wide uppercase">Départ</span>
+                        <div class="p-1.5 bg-slate-600 text-white rounded-md text-xs"><i class="fas fa-door-closed"></i></div>
+                    </div>
+                    <div class="mt-2">
+                        <p class="text-xl font-black text-slate-950">
+                            {% if presence_du_jour and presence_du_jour.heure_depart %}{{ presence_du_jour.heure_depart|time:"H:i" }}{% else %}--:--{% endif %}
+                        </p>
+                        <p class="text-[10px] text-slate-400">Heure de sortie enregistrée</p>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- TABLEAU DES CONGÉS RÉCENTS -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-indigo-50/20">
-                    <h3 class="text-base font-bold text-gray-800">Suivi des demandes de congés</h3>
-                    <a href="{% url 'demande_conge' %}" class="text-xs text-indigo-600 font-bold hover:underline">Voir tout / Demander →</a>
+            <!-- TABLEAU HISTORIQUE (COMPACT) -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-4 py-3 border-b border-slate-200 bg-slate-50/50">
+                    <h3 class="text-xs font-bold text-slate-800">Historique des présences récentes</h3>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-sm">
+                    <table class="w-full text-left border-collapse text-xs">
                         <thead>
-                            <tr class="bg-gray-50 text-gray-500 text-xs font-semibold border-b">
-                                <th class="px-6 py-2.5">Dates demandées</th>
-                                <th class="px-6 py-2.5">Motif</th>
-                                <th class="px-6 py-2.5">Statut décision</th>
+                            <tr class="bg-slate-50/80 text-slate-500 font-semibold border-b">
+                                <th class="px-4 py-2.5">Date</th>
+                                <th class="px-4 py-2.5">Entrée</th>
+                                <th class="px-4 py-2.5">Sortie</th>
+                                <th class="px-4 py-2.5">Statut</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            {% for c in mes_conges_recents %}
-                            <tr>
-                                <td class="px-6 py-3.5 font-medium">Du {{ c.dateDebut|date:"d/m/Y" }} au {{ c.dateFin|date:"d/m/Y" }}</td>
-                                <td class="px-6 py-3.5 text-gray-500 italic truncate max-w-xs">"{{ c.motif }}"</td>
-                                <td class="px-6 py-3.5">
-                                    {% if c.statut == 'En attente' %}
-                                        <span class="px-2 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-semibold">En attente</span>
-                                    {% elif c.statut == 'Approuvé' %}
-                                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Approuvé</span>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for p in historique_presences %}
+                            <tr class="hover:bg-slate-50/50 transition">
+                                <td class="px-4 py-3 font-semibold text-slate-800">{{ p.date|date:"d F Y" }}</td>
+                                <td class="px-4 py-3 text-slate-600 font-mono">{{ p.heure_arrivee|time:"H:i" }}</td>
+                                <td class="px-4 py-3 text-slate-600 font-mono">{% if p.heure_depart %}{{ p.heure_depart|time:"H:i" }}{% else %}--:--{% endif %}</td>
+                                <td class="px-4 py-3">
+                                    {% if p.statut == 'PRESENT' or p.statut == 'Présent' %}
+                                        <span class="px-2 py-0.5 bg-green-50 text-green-700 rounded border border-green-200 font-semibold text-[10px]">Présent</span>
                                     {% else %}
-                                        <span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">Refusé</span>
+                                        <span class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded border border-amber-200 font-semibold text-[10px]">retard</span>
                                     {% endif %}
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="3" class="px-6 py-4 text-center text-gray-400 italic text-xs">Aucune demande de congé enregistrée.</td>
+                                <td colspan="4" class="px-4 py-6 text-center text-slate-400 italic">Aucune présence enregistrée.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -174,38 +207,37 @@
                 </div>
             </div>
 
-            <!-- TABLEAU DES POINTAGES RÉCENTS -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-base font-bold text-gray-800">Historique des présences (5 derniers jours)</h3>
+            <!-- APERÇU DES FICHES DE PAIE RÉCENTES -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-4 py-3 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
+                    <h3 class="text-xs font-bold text-slate-800">Mes Dernières Fiches de Paie</h3>
+                    <a href="{% url 'mes_fiches_paie' %}" class="text-[11px] text-[#007acc] hover:underline font-bold">Voir tout &rarr;</a>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-sm">
+                    <table class="w-full text-left border-collapse text-xs">
                         <thead>
-                            <tr class="bg-gray-50 text-gray-500 text-xs font-semibold border-b">
-                                <th class="px-6 py-2.5">Date</th>
-                                <th class="px-6 py-2.5">Heure d'arrivée</th>
-                                <th class="px-6 py-2.5">Heure de départ</th>
-                                <th class="px-6 py-2.5">Statut</th>
+                            <tr class="bg-slate-50/80 text-slate-500 font-semibold border-b">
+                                <th class="px-4 py-2.5">Période</th>
+                                <th class="px-4 py-2.5">Salaire Brut</th>
+                                <th class="px-4 py-2.5">Salaire Net</th>
+                                <th class="px-4 py-2.5 text-right">Action</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            {% for p in historique_presences %}
-                            <tr>
-                                <td class="px-6 py-3.5 font-medium">{{ p.date|date:"d F Y" }}</td>
-                                <td class="px-6 py-3.5 text-gray-600">{{ p.heure_arrivee|time:"H:i" }}</td>
-                                <td class="px-6 py-3.5 text-gray-600">{% if p.heure_depart %}{{ p.heure_depart|time:"H:i" }}{% else %}--:--{% endif %}</td>
-                                <td class="px-6 py-3.5">
-                                    {% if p.statut == 'PRESENT' %}
-                                        <span class="px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs font-medium">Présent</span>
-                                    {% else %}
-                                        <span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-xs font-medium">En retard</span>
-                                    {% endif %}
+                        <tbody class="divide-y divide-slate-100">
+                            {% for f in mes_fiches_paie %}
+                            <tr class="hover:bg-slate-50/50 transition">
+                                <td class="px-4 py-3 font-semibold text-slate-800">{{ f.mois }}</td>
+                                <td class="px-4 py-3 text-slate-600 font-mono">{{ f.salaireBrut|floatformat:2 }} MRU</td>
+                                <td class="px-4 py-3 font-bold text-emerald-600 font-mono">{{ f.salaireNet|floatformat:2 }} MRU</td>
+                                <td class="px-4 py-3 text-right">
+                                    <a href="{% url 'mes_fiches_paie' %}" class="px-2.5 py-1 bg-[#007acc] hover:bg-blue-700 text-white font-bold text-[10px] rounded transition shadow-sm">
+                                        Consulter
+                                    </a>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="4" class="px-6 py-4 text-center text-gray-400 italic text-xs">Aucun historique de présence disponible.</td>
+                                <td colspan="4" class="px-4 py-6 text-center text-slate-400 italic">Aucune fiche de paie enregistrée pour le moment.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -216,14 +248,44 @@
         </div>
     </main>
 
-    <!-- Horloge JavaScript autonome -->
+    <!-- TIMERS JAVASCRIPT -->
     <script>
-        function updateClock() {
+        function updateWorkChronometer() {
             const now = new Date();
-            document.getElementById('current-time').textContent = now.toTimeString().split(' ')[0];
+            const liveElement = document.getElementById('live-work-duration');
+            if (liveElement) {
+                const arrivalString = liveElement.getAttribute('data-arrival');
+                const parts = arrivalString.split(':');
+                const arrivalDate = new Date();
+                arrivalDate.setHours(parseInt(parts[0], 10), parseInt(parts[1], 10), parseInt(parts[2], 10));
+                let difference = now - arrivalDate;
+                if (difference < 0) difference = 0;
+                const totalSeconds = Math.floor(difference / 1000);
+                const h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+                const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+                const s = (totalSeconds % 60).toString().padStart(2, '0');
+                liveElement.textContent = `${h}:${m}:${s}`;
+            }
+
+            const completedElement = document.getElementById('completed-hours');
+            if (completedElement) {
+                const arrivalParts = completedElement.getAttribute('data-arrival').split(':');
+                const departureParts = completedElement.getAttribute('data-departure').split(':');
+                const start = new Date();
+                start.setHours(parseInt(arrivalParts[0], 10), parseInt(arrivalParts[1], 10), parseInt(arrivalParts[2], 10));
+                const end = new Date();
+                end.setHours(parseInt(departureParts[0], 10), parseInt(departureParts[1], 10), parseInt(departureParts[2], 10));
+                let diffFixed = end - start;
+                if (diffFixed < 0) diffFixed = 0;
+                const totalSecFixed = Math.floor(diffFixed / 1000);
+                const hFixed = Math.floor(totalSecFixed / 3600).toString().padStart(2, '0');
+                const mFixed = Math.floor((totalSecFixed % 3600) / 60).toString().padStart(2, '0');
+                const sFixed = (totalSecFixed % 60).toString().padStart(2, '0');
+                completedElement.textContent = `${hFixed}:${mFixed}:${sFixed}`;
+            }
         }
-        setInterval(updateClock, 1000);
-        updateClock();
+        setInterval(updateWorkChronometer, 1000);
+        window.onload = updateWorkChronometer;
     </script>
 </body>
 </html>

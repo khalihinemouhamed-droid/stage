@@ -58,6 +58,16 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'gestionemploye.urls'
 
 AUTH_USER_MODEL = 'account.Utilisateur'
+
+# --- CONFIGURATION EMAIL ---
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'chekoutykhalihine@gmail.com'
+EMAIL_HOST_PASSWORD = 'jxqn swdt ynam ksdp'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+LOGIN_URL = 'login'
 AUTHENTICATION_BACKENDS = [
     'account.backends.LegacyPasswordBackend',
     'django.contrib.auth.backends.ModelBackend',
@@ -112,6 +122,8 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 # Internationalization

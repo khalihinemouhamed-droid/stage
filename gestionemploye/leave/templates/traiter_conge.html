@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traiter la Demande de Congé - Smart RH</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 font-sans min-h-screen flex items-center justify-center p-4">
+
+    <!-- CARTE DE CONFIRMATION DE DÉCISION -->
+    <div class="w-full max-w-lg bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+        
+        <!-- En-tête de la carte (Bleu #007acc) -->
+        <div class="bg-[#007acc] text-white px-6 py-5 flex items-center space-x-3">
+            <div class="p-2 bg-white/10 rounded-lg">
+                <i class="fas fa-calendar-check text-xl"></i>
+            </div>
+            <div>
+                <h2 class="text-base font-bold">Décision sur la demande de congé</h2>
+                <p class="text-[11px] text-blue-100/80">Traitement de dossier d'absence</p>
+            </div>
+        </div>
+
+        <!-- Corps de la carte -->
+        <div class="p-6 space-y-6">
+            
+            <!-- Informations sur l'employé et le congé -->
+            <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 space-y-3 text-xs">
+                <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
+                    <span class="text-gray-400">Collaborateur</span>
+                    <span class="font-bold text-slate-800">{{ conge.employe.user.first_name }} {{ conge.employe.user.last_name }}</span>
+                </div>
+                <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
+                    <span class="text-gray-400">Poste & Service</span>
+                    <span class="font-semibold text-slate-700">{{ conge.employe.poste.titre }} ({{ conge.employe.departement.nom }})</span>
+                </div>
+                <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
+                    <span class="text-gray-400 font-medium">Période d'absence</span>
+                    <span class="font-bold text-[#007acc] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                        Du {{ conge.dateDebut|date:"d/m/Y" }} au {{ conge.dateFin|date:"d/m/Y" }}
+                    </span>
+                </div>
+                <div class="space-y-1">
+                    <span class="text-gray-400 block">Motif formulé par l'employé :</span>
+                    <p class="text-slate-600 bg-white p-2.5 rounded border border-gray-200 italic whitespace-pre-line">
+                        "{{ conge.motif }}"
+                    </p>
+                </div>
+            </div>
+
+            <!-- Formulaire de décision RH -->
+            <form method="POST" action="{% url 'traiter_conge' conge.id %}" class="space-y-4">
+                {% csrf_token %}
+                
+                <!-- Zone de saisie d'un commentaire / motif de décision -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1.5">
+                        Commentaire ou motif de décision <span class="text-gray-400 font-normal">(Optionnel)</span>
+                    </label>
+                    <textarea name="commentaire" rows="3" 
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-300"
+                              placeholder="Ex: Demande acceptée / Effectifs insuffisants sur cette période..."></textarea>
+                </div>
+
+                <!-- Actions de validation finales -->
+                <div class="grid grid-cols-2 gap-3 pt-2">
+                    <!-- Bouton Refuser -->
+                    <button type="submit" name="decision" value="refuser" 
+                            class="py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl font-bold text-xs transition flex items-center justify-center space-x-1.5 shadow-sm">
+                        <i class="fas fa-times-circle"></i>
+                        <span>Refuser la demande</span>
+                    </button>
+                    
+                    <!-- Bouton Accepter -->
+                    <button type="submit" name="decision" value="accepter" 
+                            class="py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs transition flex items-center justify-center space-x-1.5 shadow-md">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Accepter la demande</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Pied de page pour retourner en arrière sans changements -->
+        <div class="px-6 py-4 bg-slate-50 border-t border-gray-100 flex justify-center">
+            <a href="{% url 'dashboard_rh' %}" class="text-[11px] text-gray-400 hover:text-slate-600 font-semibold transition flex items-center space-x-1">
+                <i class="fas fa-arrow-left"></i>
+                <span>Annuler et retourner au tableau de bord</span>
+            </a>
+        </div>
+
+    </div>
+
+</body>
+</html>

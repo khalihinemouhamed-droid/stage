@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Fiches de Paie - Smart RH</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        @media print {
+            body * { visibility: hidden; }
+            #printable-slip, #printable-slip * { visibility: visible; }
+            #printable-slip { position: absolute; left: 0; top: 0; width: 100%; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans min-h-screen flex">
+
+    <!-- 1. BARRE LATÉRALE (SIDEBAR BLEUE) -->
+    <aside class="w-64 bg-[#007acc] text-white flex flex-col justify-between hidden md:flex shadow-xl border-r border-blue-600">
+        <div>
+            <!-- Logo -->
+            <div class="p-5 text-lg font-bold tracking-wider border-b border-blue-500/40 flex items-center space-x-2 text-white">
+                <i class="fas fa-user-clock text-blue-200"></i>
+                <span>Smart RH</span>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="mt-4 px-3 space-y-1">
+                <!-- Onglet Pointage -->
+                <a href="{% url 'dashboard_employe' %}" 
+                   class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-white text-sm font-medium transition 
+                   {% if request.resolver_match.url_name == 'dashboard_employe' %} bg-white/20 shadow-sm {% else %} text-blue-100 hover:bg-white/10 {% endif %}">
+                    <i class="fas fa-fingerprint w-5 text-blue-100"></i>
+                    <span>Pointage & Présence</span>
+                </a>
+
+                <!-- Onglet Gestion des Congés -->
+                <a href="{% url 'demande_conge' %}" 
+                   class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-white text-sm font-medium transition 
+                   {% if request.resolver_match.url_name == 'demande_conge' %} bg-white/20 shadow-sm {% else %} text-blue-100 hover:bg-white/10 {% endif %}">
+                    <i class="fas fa-calendar-check w-5 text-blue-100"></i>
+                    <span>Gestion des Congés</span>
+                </a>
+
+                <!-- Onglet Mes Fiches de Paie (Actif sur cette page) -->
+                <a href="{% url 'mes_fiches_paie' %}" 
+                   class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-white text-sm font-medium transition shadow-sm 
+                   {% if request.resolver_match.url_name == 'mes_fiches_paie' %} bg-white/20 {% else %} text-blue-100 hover:bg-white/10 {% endif %}">
+                    <i class="fas fa-file-invoice-dollar w-5 text-white"></i>
+                    <span>Mes Fiches de Paie</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Déconnexion -->
+        <div class="p-4 border-t border-blue-500/40">
+            <a href="{% url 'logout' %}" class="flex items-center space-x-3 px-3 py-2 text-sm text-rose-200 hover:bg-rose-700/30 hover:text-white rounded-lg font-medium transition">
+                <i class="fas fa-sign-out-alt w-5"></i>
+                <span>Déconnexion</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- 2. CONTENU PRINCIPAL -->
+    <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+        
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b border-slate-200 px-6 py-3.5 flex justify-between items-center">
+            <div class="flex flex-col">
+                <h1 class="text-lg font-bold text-slate-800">Mes Bulletins de Paie</h1>
+                <p class="text-[11px] text-slate-500">Consultation et historique complet de vos fiches de paie</p>
+            </div>
+            
+            <!-- Profil -->
+            <div class="flex items-center space-x-3">
+                <div class="text-right hidden sm:block">
+                    <p class="text-xs font-semibold text-slate-700">{{ request.user.first_name }} {{ request.user.last_name }}</p>
+                    <p class="text-[10px] text-[#007acc] font-medium">Matricule: {% if employe %}{{ employe.matricule }}{% else %}N/A{% endif %}</p>
+                </div>
+                <div class="w-9 h-9 bg-[#007acc] text-white rounded-full flex items-center justify-center text-xs font-bold shadow-sm">
+                    {{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}
+                </div>
+            </div>
+        </header>
+
+        <!-- Zone du contenu -->
+        <div class="p-6 space-y-6 flex-1">
+            
+            <!-- STATS CARDS -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                
+                <!-- Carte Dernier Salaire Net -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Dernier Salaire Net</p>
+                        <p class="text-2xl font-black text-emerald-600 mt-1">
+                            {% if fiches %}
+                                {{ fiches.0.salaireNet|floatformat:2 }} <span class="text-xs font-bold text-slate-500">MRU</span>
+                            {% else %}
+                                0.00 <span class="text-xs font-bold text-slate-500">MRU</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                </div>
+
+                <!-- Carte Nombre total de bulletins -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Bulletins Disponibles</p>
+                        <p class="text-2xl font-black text-slate-800 mt-1">{{ fiches|length }}</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-blue-50 text-[#007acc] flex items-center justify-center text-lg">
+                        <i class="fas fa-file-lines"></i>
+                    </div>
+                </div>
+
+                <!-- Carte Salaire de base -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Salaire Contractuel</p>
+                        <p class="text-2xl font-black text-indigo-600 mt-1">
+                            {% if employe %}{{ employe.salaire_base|floatformat:2 }}{% else %}0.00{% endif %} <span class="text-xs font-bold text-slate-500">MRU</span>
+                        </p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- TABLEAU DES BULLETINS DE PAIE -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-5 py-4 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-800">Historique de vos fiches de paie</h3>
+                        <p class="text-xs text-slate-500">Cliquez sur une fiche pour visualiser ou imprimer les détails</p>
+                    </div>
+                    <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full border border-emerald-200">
+                        <i class="fas fa-shield-check mr-1"></i>Accès Sécurisé
+                    </span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-100/70 text-slate-600 font-bold border-b border-slate-200 uppercase tracking-wider text-[10px]">
+                                <th class="px-5 py-3.5">Période / Mois</th>
+                                <th class="px-5 py-3.5">Employé</th>
+                                <th class="px-5 py-3.5">Salaire Brut</th>
+                                <th class="px-5 py-3.5">Salaire Net</th>
+                                <th class="px-5 py-3.5 text-center">Statut</th>
+                                <th class="px-5 py-3.5 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for f in fiches %}
+                            <tr class="hover:bg-slate-50/70 transition">
+                                <td class="px-5 py-4 font-bold text-slate-800 flex items-center space-x-2">
+                                    <div class="w-8 h-8 rounded-lg bg-blue-50 text-[#007acc] flex items-center justify-center font-bold text-xs shrink-0">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </div>
+                                    <span>{{ f.mois }}</span>
+                                </td>
+                                <td class="px-5 py-4 font-medium text-slate-700">
+                                    {% firstof f.employe.utilisateur.get_full_name f.employe.utilisateur.username %}
+                                    <span class="block text-[10px] text-slate-400 font-mono">{{ f.employe.matricule }}</span>
+                                </td>
+                                <td class="px-5 py-4 font-semibold text-slate-700 font-mono">
+                                    {{ f.salaireBrut|floatformat:2 }} MRU
+                                </td>
+                                <td class="px-5 py-4 font-bold text-emerald-600 font-mono text-sm">
+                                    {{ f.salaireNet|floatformat:2 }} MRU
+                                </td>
+                                <td class="px-5 py-4 text-center">
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                        <i class="fas fa-check-circle mr-1"></i>Payé & Validé
+                                    </span>
+                                </td>
+                                <td class="px-5 py-4 text-right">
+                                    <button onclick="voirBulletin('{{ f.mois|escapejs }}', '{{ f.salaireBrut }}', '{{ f.salaireNet }}', '{{ f.employe.utilisateur.get_full_name|escapejs }}', '{{ f.employe.matricule|escapejs }}', '{{ f.employe.departement.nom|default:''|escapejs }}', '{{ f.employe.poste.titre|default:''|escapejs }}')" 
+                                            class="px-3 py-1.5 bg-[#007acc] hover:bg-blue-7-[#006bb3] text-white rounded-lg font-bold text-xs transition shadow-sm inline-flex items-center space-x-1">
+                                        <i class="fas fa-eye"></i>
+                                        <span>Consulter / Imprimer</span>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="px-5 py-12 text-center text-slate-400">
+                                    <i class="fas fa-folder-open text-4xl text-slate-300 mb-3 block"></i>
+                                    <p class="font-bold text-sm text-slate-600">Aucune fiche de paie disponible pour le moment.</p>
+                                    <p class="text-xs text-slate-400 mt-1">Vos bulletins de paie validés par les RH apparaîtront ici.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- MODAL DE VISUALISATION & IMPRESSION DU BULLETIN -->
+    <div id="modal-bulletin" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            
+            <!-- Modal Header -->
+            <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-file-invoice text-emerald-400 text-lg"></i>
+                    <h3 class="font-bold text-sm">Fiche de Paie Numérique</h3>
+                </div>
+                <button onclick="fermerModalBulletin()" class="text-slate-400 hover:text-white text-lg transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content (Printable Slip) -->
+            <div id="printable-slip" class="p-8 space-y-6">
+                
+                <!-- Slip Header -->
+                <div class="flex justify-between items-start border-b border-slate-200 pb-6">
+                    <div>
+                        <h2 class="text-xl font-black text-[#007acc] uppercase tracking-wider">SMART RH</h2>
+                        <p class="text-xs text-slate-500">Plateforme de Gestion des Ressources Humaines</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="px-3 py-1 bg-blue-50 text-[#007acc] border border-blue-200 font-bold text-xs rounded-lg">BULLETIN DE PAIE</span>
+                        <p class="text-xs font-bold text-slate-700 mt-2">Période : <span id="modal-mois" class="text-indigo-600 font-mono">--</span></p>
+                    </div>
+                </div>
+
+                <!-- Employé Details -->
+                <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
+                    <div>
+                        <p class="text-slate-400 font-bold uppercase text-[10px]">Informations Employé</p>
+                        <p class="font-bold text-slate-900 text-sm mt-1" id="modal-nom">--</p>
+                        <p class="text-slate-600 mt-0.5">Matricule : <span id="modal-matricule" class="font-mono font-bold text-slate-800">--</span></p>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 font-bold uppercase text-[10px]">Affectation</p>
+                        <p class="font-semibold text-slate-800 mt-1">Poste : <span id="modal-poste" class="font-bold">--</span></p>
+                        <p class="text-slate-600 mt-0.5">Département : <span id="modal-dept" class="font-bold">--</span></p>
+                    </div>
+                </div>
+
+                <!-- Financial Table -->
+                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                    <table class="w-full text-xs text-left">
+                        <thead class="bg-slate-100 font-bold text-slate-700 border-b border-slate-200">
+                            <tr>
+                                <th class="p-3">Rubrique</th>
+                                <th class="p-3 text-right">Montant (MRU)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr>
+                                <td class="p-3 font-semibold text-slate-800">Salaire Brut Imposable</td>
+                                <td class="p-3 text-right font-mono font-bold text-slate-900" id="modal-brut">0.00 MRU</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 text-slate-600">Statut de la transaction</td>
+                                <td class="p-3 text-right text-emerald-600 font-bold">Virement Effectué / Validé</td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="bg-slate-900 text-white font-bold">
+                            <tr>
+                                <td class="p-3 text-sm">SALAIRE NET À PAYER</td>
+                                <td class="p-3 text-right text-lg text-emerald-400 font-mono" id="modal-net">0.00 MRU</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Footer Note -->
+                <div class="text-[10px] text-slate-400 text-center border-t border-slate-100 pt-4">
+                    <p>Ce document est un bulletin de paie officiel généré numériquement par la plateforme Smart RH.</p>
+                </div>
+            </div>
+
+            <!-- Modal Footer Actions -->
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end space-x-3">
+                <button onclick="fermerModalBulletin()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl transition">
+                    Fermer
+                </button>
+                <button onclick="window.print()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center space-x-1">
+                    <i class="fas fa-print"></i>
+                    <span>Imprimer</span>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- SCRIPT JS -->
+    <script>
+        function voirBulletin(mois, brut, net, nom, matricule, dept, poste) {
+            document.getElementById('modal-mois').innerText = mois;
+            document.getElementById('modal-brut').innerText = parseFloat(brut).toFixed(2) + ' MRU';
+            document.getElementById('modal-net').innerText = parseFloat(net).toFixed(2) + ' MRU';
+            document.getElementById('modal-nom').innerText = nom || 'Employé';
+            document.getElementById('modal-matricule').innerText = matricule || 'N/A';
+            document.getElementById('modal-dept').innerText = dept || 'Général';
+            document.getElementById('modal-poste').innerText = poste || 'Agent';
+            document.getElementById('modal-bulletin').classList.remove('hidden');
+        }
+
+        function fermerModalBulletin() {
+            document.getElementById('modal-bulletin').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
