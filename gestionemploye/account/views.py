@@ -9,6 +9,8 @@ from leave.models import DemandeConge
 from paie.models import FicheDePaie
 from django.contrib.auth.models import User
 from datetime import date, datetime, time
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 
 # Connexion
 def login_view(request):
@@ -154,7 +156,21 @@ def crud_rh(request):
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
         username = request.POST.get('username')
+        email = request.POST.get('email', '').strip()
         password = request.POST.get('password')
+
+        try:
+            validate_email(email)
+        except ValidationError:
+            messages.error(request, "Veuillez saisir une adresse e-mail valide pour le responsable RH.")
+            return redirect('dashboard_admin')
+
+        email_query = Utilisateur.objects.filter(email__iexact=email)
+        if rh_id:
+            email_query = email_query.exclude(id=rh_id)
+        if email_query.exists():
+            messages.error(request, f"L'adresse e-mail {email} est déjà utilisée.")
+            return redirect('dashboard_admin')
 
         if rh_id:
             user_rh = get_object_or_404(Utilisateur, id=rh_id)
@@ -165,6 +181,7 @@ def crud_rh(request):
             user_rh.first_name = first_name
             user_rh.last_name = last_name
             user_rh.username = username
+            user_rh.email = email
             if password:
                 user_rh.set_password(password)
             user_rh.save()
@@ -181,6 +198,7 @@ def crud_rh(request):
                 username=username,
                 first_name=first_name,
                 last_name=last_name,
+                email=email,
                 password=password if password else "rh123456",
                 is_staff=True,
                 role='rh'
