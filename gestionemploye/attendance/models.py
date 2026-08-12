@@ -10,7 +10,8 @@ class Presence(models.Model):
     ]
 
     employe = models.ForeignKey(Employe, on_delete=models.CASCADE, related_name="presences")
-    date = models.DateField(auto_now_add=True)
+    # Allows absences to be recorded against the actual missed date.
+    date = models.DateField(default=datetime.date.today)
     heure_arrivee = models.TimeField(null=True, blank=True)
     heure_depart = models.TimeField(null=True, blank=True)
     statut = models.CharField(max_length=10, choices=STATUT_CHOICES, default='PRESENT')

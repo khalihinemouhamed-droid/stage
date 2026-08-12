@@ -16,7 +16,7 @@ from datetime import date
 from leave.models import DemandeConge
 from .models import Presence
 from paie.models import FicheDePaie
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 
 
 from .models import Presence
@@ -45,6 +45,17 @@ def verifier_et_generer_absences(date_cible=None):
 
     employes = Employe.objects.all()
     for emp in employes:
+        if emp.utilisateur.date_joined.date() > date_cible:
+            continue
+        if date_cible.weekday() >= 5:
+            continue
+        if DemandeConge.objects.filter(
+            employe=emp,
+            statut='Approuvé',
+            dateDebut__lte=date_cible,
+            dateFin__gte=date_cible,
+        ).exists():
+            continue
         presence_existante = Presence.objects.filter(employe=emp, date=date_cible).first()
         if not presence_existante:
             salaire_base_brut = getattr(emp, 'salaire_base', None)
@@ -66,6 +77,17 @@ def verifier_et_generer_absences(date_cible=None):
                 retenue_salaire=taux_journalier,
                 note="Absence constatée (non pointé)"
             )
+
+
+def generer_absences_du_mois():
+    """Create absence records for missed workdays from this month through yesterday."""
+    aujourd_hui = timezone.localdate()
+    jour = aujourd_hui.replace(day=1)
+    dernier_jour_a_verifier = aujourd_hui - timedelta(days=1)
+
+    while jour <= dernier_jour_a_verifier:
+        verifier_et_generer_absences(jour)
+        jour += timedelta(days=1)
 
 
 def calculer_retenues_employe_mois(employe, mois_str=""):
@@ -96,6 +118,7 @@ def calculer_retenues_employe_mois(employe, mois_str=""):
 @login_required
 @role_required('employe')
 def dashboard_employe_view(request):
+    generer_absences_du_mois()
     try:
         employe = request.user.employe
     except (AttributeError, Employe.DoesNotExist):
@@ -122,7 +145,8 @@ def dashboard_employe_view(request):
     if request.method == "POST":
         if not presence_du_jour or not presence_du_jour.heure_arrivee:
             # --- POINTAGE ARRIVÉE ET RETARDS ---
-            heure_limite = time(8, 0, 0)
+            # Arrivals through 09:30 are considered on time.
+            heure_limite = time(9, 30, 0)
             statut = 'Present'
             minutes_retard = 0
             retenue = 0.00
@@ -162,10 +186,12 @@ def dashboard_employe_view(request):
                 )
             
             if statut == 'Retard':
+                heures_retard, minutes_restantes = divmod(minutes_retard, 60)
+                duree_retard = f"{heures_retard}h{minutes_restantes:02d}min"
                 messages.warning(
                     request, 
                     f"Arrivée en RETARD à {maintenant.strftime('%H:%M')}. "
-                    f"Retard de {minutes_retard} min. Une retenue de {retenue} MRU a été appliquée."
+                    f"Retard de {duree_retard}. Une retenue de {retenue} MRU a été appliquée."
                 )
             else:
                 messages.success(
@@ -229,15 +255,16 @@ from django.views.decorators.http import require_POST
 def dashboard_rh(request):
     """
     Affiche le tableau de bord RH complet :
-    - Génère automatiquement les enregistrements d'absence du jour pour les employés non pointés
+    - Génère automatiquement les absences des jours ouvrés passés du mois
     - Liste des présences du jour
     - Liste des demandes de congés en attente
     - Liste de tous les employés (pour le CRUD et suivi des salaires)
     - Liste de l'ensemble des fiches de paie émises
     - Départements et Postes pour alimenter les formulaires
     """
-    # 0. Auto-génération des absences du jour pour les employés qui n'ont pas pointé
-    verifier_et_generer_absences(date.today())
+    # 0. Génération des absences des jours ouvrés déjà terminés.
+    # Aujourd'hui is not marked absent until the day has passed.
+    generer_absences_du_mois()
 
     # Filtres optionnels pour les présences (date, employé, statut)
     search_date = request.GET.get('date', '').strip()
