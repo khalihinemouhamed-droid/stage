@@ -15,10 +15,10 @@ from django.core.validators import validate_email
 # Connexion
 def login_view(request):
     if request.method == "POST":
-        username = request.POST["username"]
+        email = request.POST["email"]
         password = request.POST["password"]
-        user = authenticate(request, username=username, password=password)
-        print(f"Authenticating user: {username} {password}, Result: {user}")  # Debugging line
+        user = authenticate(request, email=email, password=password)
+        print(f"Authenticating user: {email} {password}, Result: {user}")  # Debugging line
         if user is not None:
             login(request, user)
             print(f"User logged in: {user.role}")  # Debugging line
