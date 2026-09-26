@@ -1,6 +1,8 @@
-from django.db import models
-from employe.models import Employe
 import datetime
+
+from django.db import models
+
+from employe.models import Employe
 
 class Presence(models.Model):
     STATUT_CHOICES = [

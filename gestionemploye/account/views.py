@@ -1,16 +1,27 @@
-from django.shortcuts import get_object_or_404, render, redirect
-from django.contrib.auth import authenticate, login, logout
+from datetime import date, datetime, time
+
+from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
-from employe.models import Departement, Employe, Poste
-from .models import Utilisateur
+from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
+from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
+from django.core.validators import validate_email
+from django.db.models import Q
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+
+from account.decorators import role_required
 from attendance.models import Presence
+from employe.models import Departement, Employe, Poste
 from leave.models import DemandeConge
 from paie.models import FicheDePaie
-from django.contrib.auth.models import User
-from datetime import date, datetime, time
-from django.core.exceptions import ValidationError
-from django.core.validators import validate_email
+from .models import Utilisateur
 
 # Connexion
 def login_view(request):
@@ -32,14 +43,7 @@ def login_view(request):
         else:
             messages.error(request,"Nom d’utilisateur ou mot de passe incorrect.")
     return render(request, "login.html")
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth.models import User
-from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required
-
 User = get_user_model()
-from account.decorators import role_required
 
 
 def password_reset_step1(request):
@@ -79,8 +83,6 @@ def password_reset_step2(request):
 def logout_view(request):
     logout(request)
     return redirect("login")
-
-from django.contrib.auth import get_user_model
 
 # Récupération de votre modèle Utilisateur personnalisé
 Utilisateur = get_user_model()
@@ -234,17 +236,6 @@ def ajouter_poste(request):
             Poste.objects.create(titre=titre, departement=dept)
             messages.success(request, f"Poste '{titre}' ajouté au département {dept.nom}.")
     return redirect('dashboard_admin')
-from django.core.mail import send_mail
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
-from django.contrib.auth.tokens import default_token_generator
-from django.urls import reverse
-from django.contrib.auth import get_user_model
-from django.shortcuts import render
-from django.db.models import Q
-from django.conf import settings
-from django.template.loader import render_to_string
-
 User = get_user_model() # Récupère votre modèle personnalisé (Utilisateur)
 
 def password_reset_request(request):

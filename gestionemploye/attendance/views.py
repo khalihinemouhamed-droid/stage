@@ -1,39 +1,25 @@
 import random
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from datetime import date, datetime, time, timedelta
+
 from django.contrib import messages
-from django.utils import timezone
-from .models import Presence
-from employe.models import Employe
-from leave.models import DemandeConge  # Chargement des données de congé
-from django.contrib.auth.decorators import user_passes_test
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import user_passes_test
-from django.contrib import messages
-from django.utils import timezone
-from employe.models import Employe
-from datetime import date
-from leave.models import DemandeConge
-from .models import Presence
-from paie.models import FicheDePaie
-from datetime import datetime, time, timedelta
-
-
-from .models import Presence
-
-import random
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
-from django.utils import timezone
-from employe.models import Poste
-from employe.models import Departement
-from account.decorators import role_required
-
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.db.models import Sum
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.views.decorators.http import require_POST
+
+from account.decorators import role_required
+from account.models import Utilisateur
+from employe.models import Departement, Employe, Poste
+from leave.models import DemandeConge
+from paie.models import FicheDePaie
+from .models import Presence
 
 
+# --- OUTILS : ABSENCES ET CALCUL DES RETENUES ---
 def verifier_et_generer_absences(date_cible=None):
     """
     Vérifie pour une date donnée (par défaut aujourd'hui) tous les employés enregistrés.
@@ -114,7 +100,7 @@ def calculer_retenues_employe_mois(employe, mois_str=""):
     return float(total_retenues), nb_absences, nb_retards
 
 
-# --- ESPACE EMPLOYÉ : ACCÈS ET CONSULTATION DE SES FICHES DE PAIE ---
+# --- ESPACE EMPLOYÉ ---
 @login_required
 @role_required('employe')
 def dashboard_employe_view(request):
@@ -227,23 +213,6 @@ def dashboard_employe_view(request):
         "mes_fiches_paie": mes_fiches_paie, # Envoyé au dashboard employé
     }
     return render(request, "dashboard_employe.html", context)
-
-
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import user_passes_test
-from django.contrib import messages
-from django.utils import timezone
-from employe.models import Employe
-from leave.models import DemandeConge 
-from .models import Presence
-from django.core.exceptions import PermissionDenied
-from account.models import Utilisateur
-from django.db import transaction
-from django.views.decorators.http import require_POST
-
-
-
 # def est_rh_ou_admin(user):
 #     return user.is_staff or user.is_superuser
 
@@ -251,6 +220,7 @@ from django.views.decorators.http import require_POST
 # @user_passes_test(est_rh_ou_admin, login_url='login')
 
 
+# --- ESPACE RH ET ADMINISTRATION ---
 @role_required('rh', 'admin')
 def dashboard_rh(request):
     """
@@ -492,10 +462,14 @@ def supprimer_employe(request, employe_id):
 # --- ACTION : CRÉATION DU BULLETIN DE PAIE (FICHE DE PAIE) PAR UN RH OU ADMIN ---
 def emettre_fiche_paie(request):
     if request.method == 'POST':
-        employe_id = request.POST.get('employe_id')
+        employe_id = (request.POST.get('employe_id') or '').strip()
         mois = request.POST.get('mois') # Format: "2026-08-04" ou "2026-08" ou texte
         salaire_brut_saisi = request.POST.get('salaire_brut')
         salaire_net_saisi = request.POST.get('salaire_net')
+
+        if not employe_id.isdigit():
+            messages.error(request, "Veuillez sélectionner un employé avant d'émettre le bulletin.")
+            return redirect(request.META.get('HTTP_REFERER', 'dashboard_rh'))
 
         employe = get_object_or_404(Employe, id=employe_id)
 

@@ -1,6 +1,6 @@
-from django import views
 from django.urls import path
-from .views import demande_conge_view, valider_conges_list_view,traiter_conge
+
+from .views import demande_conge_view, traiter_conge, valider_conges_list_view
 
 urlpatterns = [
     path('demande/', demande_conge_view, name='demande_conge'),
