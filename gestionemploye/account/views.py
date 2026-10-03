@@ -82,7 +82,7 @@ def password_reset_step2(request):
 # Déconnexion
 def logout_view(request):
     logout(request)
-    return redirect("login")
+    return redirect("login-khalihine")
 
 # Récupération de votre modèle Utilisateur personnalisé
 Utilisateur = get_user_model()
